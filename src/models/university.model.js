@@ -7,4 +7,6 @@ const universitySchema = new Schema({
     }
 } , {timestamps : true})
 
-export const University = model("University" , universitySchema)
+const University = model("University" , universitySchema)
+
+export default University

@@ -8,7 +8,7 @@ const studyMaterial = new Schema({
     material_type : {
         type : String
     },
-    material_path : {
+    content_link : {
         type :  String,
         required : true
     },
@@ -18,6 +18,10 @@ const studyMaterial = new Schema({
     },
     uploadedByMaterial : {
         type : Schema.Types.ObjectId,
-        ref : "Admin"
+        ref : "User"
     }
 } , {timestamps : true})
+
+const Study = model("Study" , studyMaterial)
+
+export default Study

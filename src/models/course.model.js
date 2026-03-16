@@ -11,4 +11,6 @@ const courseSchema = new Schema({
     }
 } , {timestamps : true})
 
-export const Course = model("Course" , courseSchema)
+const Course = model("Course" , courseSchema)
+
+export default Course

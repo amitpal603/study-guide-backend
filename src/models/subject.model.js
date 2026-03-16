@@ -6,7 +6,17 @@ const subjectSchema = new Schema({
     },
     subject_code : {
         type : Number
+    },
+    semester_id : {
+        type : Schema.Types.ObjectId,
+        ref : "Semester"
+    },
+    course_id : {
+        type : Schema.Types.ObjectId,
+        ref : "Course"
     }
 } , {timestamps : true})
 
-export const Subject = model("Subject" , subjectSchema)
+const Subject = model("Subject" , subjectSchema)
+
+export default Subject

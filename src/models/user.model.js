@@ -42,26 +42,8 @@ const userSchema = new Schema({
     semester_id : {
         type : Schema.Types.ObjectId,
         ref :  "Semester"
-    }
+    }, },{timestamps : true})
 
+ const User = model("User" , userSchema)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-} , {timestamps: true})
+ export default User

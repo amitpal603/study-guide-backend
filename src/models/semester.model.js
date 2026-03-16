@@ -11,4 +11,6 @@ const semesterSchema = new Schema({
     }
 } , {timestamps : true})
 
-export const Semester = model("Semester" , semesterSchema)
+const Semester = model("Semester" , semesterSchema)
+
+export default Semester

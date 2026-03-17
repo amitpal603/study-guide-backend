@@ -2,33 +2,29 @@ import {Schema , model} from "mongoose"
 
 const userSchema = new Schema({
     username : {
-        type: String,
-        unique : true
-    },
-    name : {
         type : String,
-        required : true
+        required : [true , "username will be required"],
+        minlength : [3 , "min length on this field 3 latter"]
     },
     email : {
-        type : String || undefined,
-        required : true,
+        type : String,
+        required : [true , "email will be required"],
+        unique : [true , "this field also unique so please"],
         trim : true,
-        lowercase : true,
-        unique : true
+        lowercase : true
     },
     password : {
         type : String,
-        required : true
+        required :[true , "Password will be required"]
     },
     role : {
         type : String,
         enum : ["USER" , "ADMIN"],
         default : "USER"
     },
-    
     university_id : {
         type : Schema.Types.ObjectId,
-        ref :  "University"
+        ref : "University"
     },
     course_id : {
         type : Schema.Types.ObjectId,
@@ -36,11 +32,12 @@ const userSchema = new Schema({
     },
     semester_id : {
         type : Schema.Types.ObjectId,
-        ref :  "Semester"
+        ref : "Semester"
     },
-   refreshToken : {
-            type : String
-    } ,},{timestamps : true})
+    refreshToken : {
+        type : String || undefined
+    }
+   },{timestamps : true})
 
  const User = model("User" , userSchema)
 

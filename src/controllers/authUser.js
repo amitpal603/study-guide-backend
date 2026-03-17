@@ -6,69 +6,80 @@ import Course from "../models/course.model.js"
 import Semester from "../models/semester.model.js"
 
 export const UserRegister = async (req, res) => {
-
-    const { username, email, password, university, course, semester } = req.body
-
     try {
+        const { username, email, password, university, course, semester } = req.body;
 
-        // Basic validation
-        if (!username || !password) {
+        console.log("Request Body:", req.body);
+
+        // Validate fields
+        if (!username || !email || !password || !university || !course || !semester) {
             return res.status(400).json({
-                message: "Username and password are required"
-            })
+                message: "All fields are required"
+            });
         }
 
         // Check existing user
-        const isExistUser = await User.findOne({email})
+        const isExistUser = await User.findOne({ email }).select("-password");
 
         if (isExistUser) {
             return res.status(400).json({
                 message: "User already exists with this email"
-            })
+            });
         }
 
-        console.log("Request Body:", req.body)
-
         // Hash password
-        const hashPassword = await argon2.hash(password)
+        const hashPassword = await argon2.hash(password);
 
-        // Save university, course, semester
-        const uni = await new University({university_name: university }).save()
-        const cou = await new Course({ course_name :course }).save()
-        const sem = await new Semester({ semester }).save()
+        // Find or create university
+        let uni = await University.findOne({ university_name: university });
+        if (!uni) {
+            uni = await new University({ university_name: university }).save();
+        }
+
+        // Find or create course
+        let cou = await Course.findOne({ course_name: course, university_id: uni._id });
+        if (!cou) {
+            cou = await new Course({
+                course_name: course,
+                university_id: uni._id
+            }).save();
+        }
+
+        // Find or create semester
+        let sem = await Semester.findOne({ semester: semester, course_id: cou._id });
+        if (!sem) {
+            sem = await new Semester({
+                semester: semester,
+                course_id: cou._id
+            }).save();
+        }
 
         // Create user
-        const newUser = new User({
-           name : username,
-            email: email,
+        const newUser = await User.create({
+            username,
+            email,
             password: hashPassword,
             university_id: uni._id,
             course_id: cou._id,
             semester_id: sem._id
-        })
+        });
 
-        await newUser.save()
-
-        // Remove password before sending response
-        const userResponse = newUser.toObject()
-        delete userResponse.password
+        
 
         return res.status(201).json({
             message: "User created successfully",
-            user: userResponse
-        })
+        });
 
     } catch (error) {
 
-        console.error("Register Error:", error)
+        console.error("Register Error:", error);
 
         return res.status(500).json({
             message: "Internal server error in register controller",
             error: error.message
-        })
+        });
     }
-}
-
+};
 export const userLogin = async (req, res) => {
 
   const { email, password } = req.body

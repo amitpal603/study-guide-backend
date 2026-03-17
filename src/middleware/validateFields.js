@@ -1,11 +1,13 @@
 
-export const validate = (req , res , next) => {
-    const {username , course , semester , password , university} = req.body
+export const validate = (req, res, next) => {
+    const { name, course, semester, password, university, email } = req.body;
 
-    if(!university || !course || !semester || !username || !password) {
+    if (!name || !course || !semester || !password || !university || !email) {
         return res.status(400).json({
-            message :" all fields required"
-        })
+            success: false,
+            message: "All fields are required"
+        });
     }
-    next()
-}
+
+    next();
+};

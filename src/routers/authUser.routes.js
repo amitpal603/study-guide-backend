@@ -5,7 +5,7 @@ const router = Router()
 
 //! user auth routes
 
-router.post("/register" ,validate , UserRegister)
+router.post("/register"  , UserRegister)
 router.post("/login" , userLogin)
 
 export default router 

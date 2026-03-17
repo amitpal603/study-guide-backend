@@ -10,7 +10,7 @@ const userSchema = new Schema({
         required : true
     },
     email : {
-        type : String,
+        type : String || undefined,
         required : true,
         trim : true,
         lowercase : true,
@@ -42,7 +42,10 @@ const userSchema = new Schema({
     semester_id : {
         type : Schema.Types.ObjectId,
         ref :  "Semester"
-    }, },{timestamps : true})
+    },
+   refreshToken : {
+            type : String
+    } ,},{timestamps : true})
 
  const User = model("User" , userSchema)
 

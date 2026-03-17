@@ -7,12 +7,14 @@ const userSchema = new Schema({
         minlength : [3 , "min length on this field 3 latter"]
     },
     email : {
-        type : String,
+        type : String || undefined,
         required : [true , "email will be required"],
         unique : [true , "this field also unique so please"],
         trim : true,
-        lowercase : true
+        lowercase : true,
+        
     },
+
     password : {
         type : String,
         required :[true , "Password will be required"]

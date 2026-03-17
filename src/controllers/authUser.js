@@ -12,14 +12,14 @@ export const UserRegister = async (req, res) => {
         console.log("Request Body:", req.body);
 
         // Validate fields
-        if (!username || !email || !password || !university || !course || !semester) {
+        if (!username || !email || !password || !university || !course || !semester || !phone) {
             return res.status(400).json({
                 message: "All fields are required"
             });
         }
 
         // Check existing user
-        const isExistUser = await User.findOne({ email }).select("-password");
+        const isExistUser = await User.findOne({email }).select("-password");
 
         if (isExistUser) {
             return res.status(400).json({
@@ -80,6 +80,7 @@ export const UserRegister = async (req, res) => {
         });
     }
 };
+
 export const userLogin = async (req, res) => {
 
   const { email, password } = req.body
@@ -94,7 +95,7 @@ export const userLogin = async (req, res) => {
     }
 
     // Find user by email or phone
-    const user = await User.findOne({email})
+    const user = await User.findOne({ email})
 
     if (!user) {
       return res.status(404).json({
@@ -107,7 +108,7 @@ export const userLogin = async (req, res) => {
 
     if (!isPasswordValid) {
       return res.status(400).json({
-        message: "Invalid email/phone or password"
+        message: "Invalid email or password"
       })
     }
 
@@ -130,11 +131,14 @@ export const userLogin = async (req, res) => {
       sameSite: "strict"
     }
 
-    res.cookie("token", token, options)
+    const data = {
+      token,
+      role : user.role
+    }
 
-    return res.status(200).json({
+    return res.status(200).cookie("token" , token , options).json({
       message: "Login successfully",
-      token
+      data
     })
 
   } catch (error) {
@@ -145,4 +149,10 @@ export const userLogin = async (req, res) => {
       message: "Internal server error in login controller"
     })
   }
+}
+
+export const userLogout = async (req, res) => {
+  return res.status(200).clearCookie("token").json({
+    message : "Logout Successfully..."
+  })
 }

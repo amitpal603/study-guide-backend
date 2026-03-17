@@ -2,7 +2,7 @@ import {Schema , model} from "mongoose"
 
 const userSchema = new Schema({
     username : {
-        type: String || undefined,
+        type: String,
         unique : true
     },
     name : {
@@ -25,12 +25,7 @@ const userSchema = new Schema({
         enum : ["USER" , "ADMIN"],
         default : "USER"
     },
-    phone : {
-        type : String || undefined,
-        trim : true,
-        unique : true
-
-    },
+    
     university_id : {
         type : Schema.Types.ObjectId,
         ref :  "University"

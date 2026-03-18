@@ -61,11 +61,12 @@ export const UserRegister = async (req, res) => {
             password: hashPassword,
             university_id: uni._id,
             course_id: cou._id,
-            semester_id: sem._id
+            semester_id: sem._id,
         });
 
-        
 
+        
+        await newUser.save()
         return res.status(201).json({
             message: "User created successfully",
         });
@@ -156,3 +157,4 @@ export const userLogout = async (req, res) => {
     message : "Logout Successfully..."
   })
 }
+

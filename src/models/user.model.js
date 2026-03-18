@@ -38,6 +38,18 @@ const userSchema = new Schema({
     },
     refreshToken : {
         type : String || undefined
+    },
+    resetToken : {
+        type : String,
+        default : undefined
+    },
+    resetTokenExpires : {
+        type : Date,
+        default : undefined
+    },
+    isEmailVerified : {
+        type : Boolean,
+        default : false
     }
    },{timestamps : true})
 

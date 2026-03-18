@@ -6,77 +6,89 @@ import Course from "../models/course.model.js"
 import Semester from "../models/semester.model.js"
 
 export const UserRegister = async (req, res) => {
-    try {
-        const { username, email, password, university, course, semester } = req.body;
+  try {
+    const { username, email, password, university, course, semester, role } = req.body;
 
-        console.log("Request Body:", req.body);
+    console.log("Request Body:", req.body);
 
-        // Validate fields
-        if (!username || !email || !password || !university || !course || !semester) {
-            return res.status(400).json({
-                message: "All fields are required"
-            });
-        }
-
-        // Check existing user
-        const isExistUser = await User.findOne({email }).select("-password");
-
-        if (isExistUser) {
-            return res.status(400).json({
-                message: "User already exists with this email"
-            });
-        }
-
-        // Hash password
-        const hashPassword = await argon2.hash(password);
-
-        // Find or create university
-        let uni = await University.findOne({ university_name: university });
-        if (!uni) {
-            uni = await new University({ university_name: university }).save();
-        }
-
-        // Find or create course
-        let cou = await Course.findOne({ course_name: course, university_id: uni._id });
-        if (!cou) {
-            cou = await new Course({
-                course_name: course,
-                university_id: uni._id
-            }).save();
-        }
-
-        // Find or create semester
-        let sem = await Semester.findOne({ semester: semester, course_id: cou._id });
-        if (!sem) {
-            sem = await new Semester({
-                semester: semester,
-                course_id: cou._id
-            }).save();
-        }
-
-        // Create user
-        const newUser = await User.create({
-            username,
-            email,
-            password: hashPassword,
-            university_id: uni._id,
-            course_id: cou._id,
-            semester_id: sem._id,
-        });
-
-        return res.status(201).json({
-            message: "User created successfully",
-        });
-
-    } catch (error) {
-
-        console.error("Register Error:", error);
-
-        return res.status(500).json({
-            message: "Internal server error in register controller",
-            error: error.message
-        });
+    // Check existing user
+    const isExistUser = await User.findOne({ email });
+    if (isExistUser) {
+      return res.status(400).json({
+        message: "User already exists with this email",
+      });
     }
+
+    // Hash password
+    const hashPassword = await argon2.hash(password);
+
+    //  ADMIN REGISTER
+    if (role === "ADMIN") {
+      const admin = await User.create({
+        username,
+        email,
+        password: hashPassword,
+        role: "ADMIN",
+      });
+
+      return res.status(201).json({
+        message: "Admin created successfully",
+        admin,
+      });
+    }
+
+    //  USER REGISTER
+    let uni = await University.findOne({ university_name: university });
+    if (!uni) {
+      uni = await new University({ university_name: university }).save();
+    }
+
+    let cou = await Course.findOne({
+      course_name: course,
+      university_id: uni._id,
+    });
+
+    if (!cou) {
+      cou = await new Course({
+        course_name: course,
+        university_id: uni._id,
+      }).save();
+    }
+
+    let sem = await Semester.findOne({
+      semester: semester,
+      course_id: cou._id,
+    });
+
+    if (!sem) {
+      sem = await new Semester({
+        semester: semester,
+        course_id: cou._id,
+      }).save();
+    }
+
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashPassword,
+      role: role || "USER",
+      university_id: uni._id,
+      course_id: cou._id,
+      semester_id: sem._id,
+    });
+
+    return res.status(201).json({
+      message: "User created successfully",
+      newUser,
+    });
+  } catch (error) {
+    console.error("Register Error:", error);
+
+    return res.status(500).json({
+      message: "Internal server error in register controller",
+      error: error.message,
+    });
+  }
 };
 
 export const userLogin = async (req, res) => {

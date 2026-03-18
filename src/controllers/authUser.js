@@ -4,6 +4,8 @@ import argon2 from "argon2"
 import University from "../models/university.model.js"
 import Course from "../models/course.model.js"
 import Semester from "../models/semester.model.js"
+import crypto from "crypto"
+import { sendEmail } from "../lib/email.js"
 
 export const UserRegister = async (req, res) => {
   try {
@@ -165,5 +167,96 @@ export const userLogout = async (req, res) => {
   return res.status(200).clearCookie("token").json({
     message : "Logout Successfully..."
   })
+}
+
+export const forgetPassword = async (req , res) => {
+  const {email} = req.body
+
+  if(!email) {
+    return res.status(400).json({
+      message :"Email  is required"
+    })
+  }
+  try {
+    const user = await User.findOne({email})
+
+    if(!user) {
+      return res.status(404).json({
+        message : "User not found"
+      })
+    }
+
+    const randomToken = crypto.randomBytes(32).toString("hex")
+    const tokenHash = crypto.createHash("sha256").update(randomToken).digest("hex")
+
+    user.resetToken = tokenHash
+    user.resetTokenExpires = new Date(Date.now() + 15 * 60 * 1000)
+
+    await user.save()
+
+    const resetUrl = `http://localhost:3000/api/auth/user/reset-password?token=${randomToken}`
+
+     await sendEmail(
+      user.email,
+      "Reset your password",
+      `
+      <P>Required password reset click this link :</P>
+      <P><a href="${resetUrl}">${resetUrl}</a></P>
+      `
+     )
+
+     return res.json({
+      message : "If an account with this email exists , we will send you a reset link"
+     })
+  } catch (error) {
+    console.error("Login Error:", error)
+
+    return res.status(500).json({
+      message: "Internal server error in forget password controller"
+    })
+  }
+}
+
+export const resetPassword = async (req, res) => {
+  const {token , password} = req.body
+
+  if(!token) {
+    return res.json({
+      message : "Reset token is missing"
+    })
+  }
+
+  try {
+     const tokenHash = crypto.createHash("sha256").update(token).digest("hex")
+
+     const user = await User.findOne({
+      resetToken : tokenHash,
+      resetTokenExpires : {$gt : new Date()}
+     })
+
+     if(!user) {
+      return res.json({
+        message : "Invalid or Expire Token"
+      })
+     }
+
+     const hashPassword = await argon2.hash(password)
+
+     user.password = hashPassword
+     user.resetToken = undefined
+     user.resetTokenExpires = undefined
+
+     await user.save()
+
+     return res.status(200).json({
+      message : "Password reset successfully..."
+     })
+  } catch (error) {
+    console.error("Login Error:", error)
+
+    return res.status(500).json({
+      message: "Internal server error in reset password controller"
+    })
+  }
 }
 

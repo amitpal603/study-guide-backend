@@ -12,7 +12,7 @@ export const UserRegister = async (req, res) => {
         console.log("Request Body:", req.body);
 
         // Validate fields
-        if (!username || !email || !password || !university || !course || !semester || !phone) {
+        if (!username || !email || !password || !university || !course || !semester) {
             return res.status(400).json({
                 message: "All fields are required"
             });
@@ -64,9 +64,6 @@ export const UserRegister = async (req, res) => {
             semester_id: sem._id,
         });
 
-
-        
-        await newUser.save()
         return res.status(201).json({
             message: "User created successfully",
         });

@@ -186,15 +186,15 @@ export const forgetPassword = async (req , res) => {
       })
     }
 
-    const randomToken = crypto.randomBytes(32).toString("hex")
-    const tokenHash = crypto.createHash("sha256").update(randomToken).digest("hex")
+    const token = crypto.randomBytes(32).toString("hex")
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex")
 
     user.resetToken = tokenHash
     user.resetTokenExpires = new Date(Date.now() + 15 * 60 * 1000)
 
     await user.save()
 
-    const resetUrl = `http://localhost:3000/api/auth/user/reset-password?token=${randomToken}`
+    const resetUrl = `http://localhost:5173/reset-password/${token}`;
 
      await sendEmail(
       user.email,
@@ -218,7 +218,8 @@ export const forgetPassword = async (req , res) => {
 }
 
 export const resetPassword = async (req, res) => {
-  const {token , password} = req.body
+  const {password} = req.body
+  const {token} = req.params
 
   if(!token) {
     return res.json({

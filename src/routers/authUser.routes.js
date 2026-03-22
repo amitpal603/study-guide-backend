@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { forgetPassword, userLogin, userLogout, UserRegister, resetPassword} from "../controllers/authUser.controller.js"
+import { forgetPassword, userLogin, userLogout, UserRegister, resetPassword, getAllUser, deleteUser} from "../controllers/authUser.controller.js"
 import { validate } from "../middleware/validateFields.js"
 import { authUser } from "../middleware/authUserMiddleware.js"
 import { authAdmin } from "../middleware/authAdmin.js"
@@ -14,5 +14,7 @@ router.post("/logout" , userLogout)
 router.post("/forget-password" , forgetPassword)
 router.post("/reset-password/:token" , resetPassword )
 router.get("/get/pdf" ,authUser , authAdmin, getPdf)
+router.get("/getAllUser" , authUser , authAdmin , getAllUser)
+router.delete("/delete/:id" , authUser , authAdmin , deleteUser)
 
-export default router 
+export default router

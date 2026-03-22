@@ -8,9 +8,10 @@ export const uploadCloudinaryPDF = async (filepath) => {
       throw new Error("File path is missing");
     }
 
-    const result = await cloudinary.uploader.upload(filepath, {
-      resource_type: "auto", // REQUIRED for PDFs
-      folder: "pdfs",
+    const result = await cloudinary.uploader.upload(filepath , {
+      resource_type : "raw",
+      type : "upload",
+      access_mode : "public"
     });
      fs.unlinkSync(filepath)
     return {

@@ -1,11 +1,11 @@
 import {Schema , model} from "mongoose"
 
 const subjectSchema = new Schema({
-    subject_name : {
+    subjectName : {
         type : String
     },
-    subject_code : {
-        type : Number
+    subjectCode : {
+        type : String
     },
     semester_id : {
         type : Schema.Types.ObjectId,

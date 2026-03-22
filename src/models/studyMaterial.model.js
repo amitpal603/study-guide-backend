@@ -1,27 +1,37 @@
-import {Schema , model} from "mongoose"
+import { Schema, model } from "mongoose";
 
 const studyMaterial = new Schema({
-    title : {
-        type : String,
-        required :  true
-    },
-    material_type : {
-        type : String
-    },
-    content_link : {
-        type :  String,
-        required : true
-    },
-    subject_id : {
-        type :  Schema.Types.ObjectId,
-        ref : "Subject"
-    },
-    uploadedByMaterial : {
-        type : Schema.Types.ObjectId,
-        ref : "User"
-    }
-} , {timestamps : true})
+  title: {
+    type: String,
+    required: true
+  },
 
-const Study = model("Study" , studyMaterial)
+  materialType: {
+    type: String
+  },
 
-export default Study
+  fileUrl: {
+    type: String,
+    required: true
+  },
+
+  publicId: {
+    type: String
+  },
+
+  subject: {
+    type: Schema.Types.ObjectId,
+    ref: "Subject",
+    required: true
+  },
+
+  uploadedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User"
+  }
+
+}, { timestamps: true });
+
+const Study = model("Study", studyMaterial);
+
+export default Study;

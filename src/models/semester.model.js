@@ -10,7 +10,7 @@ const semesterSchema = new Schema({
         ref : "Course"
     }
 } , {timestamps : true})
-
+semesterSchema.index({ semester: 1, course_id: 1 }, { unique: true });
 const Semester = model("Semester" , semesterSchema)
 
 export default Semester

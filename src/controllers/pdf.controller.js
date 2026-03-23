@@ -4,6 +4,7 @@ import University from "../models/university.model.js";
 import Course from "../models/course.model.js";
 import Semester from "../models/semester.model.js";
 import { uploadCloudinaryPDF } from "../Helper/uploadCloudinary.js";
+import cloudinary from "../config/cloudinary.js";
 
 export const uploadPdfToDatabase = async (req, res) => {
   try {
@@ -82,3 +83,45 @@ export const getPdf = async (req , res) => {
     })
   }
 }
+
+export const deletePdf = async (req, res) => {
+  const { pdfId } = req.params;
+  const {id} = req.userInfo;
+
+  try {
+    const pdf = await Study.findById(pdfId);
+
+    if (!pdf) {
+      return res.status(404).json({
+        success: false,
+        message: "Image not found",
+      });
+    }
+
+    if (pdf.uploadedBy.toString() !== id) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this pdf",
+      });
+    }
+
+    // Delete from Cloudinary
+    await cloudinary.uploader.destroy(pdf.publicId , {
+              resource_type: "raw"
+    });
+
+    // Delete from MongoDB
+    await Study.findByIdAndDelete(pdfId);
+
+    return res.status(200).json({
+      success: true,
+      message: "PDF deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete PDF Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};

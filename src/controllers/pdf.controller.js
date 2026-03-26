@@ -117,14 +117,15 @@ export const deletePdf = async (req, res) => {
       });
     }
     const pdf = await Study.findById(pdfId);
+    const subjectId = pdf.subject
 
     if (!pdf) {
       return res.status(404).json({
         success: false,
-        message: "Image not found",
+        message: "Pdf not found",
       });
     }
-
+    
     if (pdf.uploadedBy.toString() !== id) {
       return res.status(403).json({
         success: false,
@@ -139,7 +140,34 @@ export const deletePdf = async (req, res) => {
 
     // Delete from MongoDB
     await Study.findByIdAndDelete(pdfId);
+    if(!subjectId) {
+      return res.status(403).json({
+        message : "subject id not provided"
+      })
+    }
+     const sub = await Subject.findByIdAndDelete(subjectId)
+     const semesterId = sub.semester_id
 
+     if(!semesterId) {
+      return res.status(403).json({
+        message : "semester id not provided"
+      })
+    }
+    const course = await Semester.findByIdAndDelete(semesterId)
+    const courseId = course.course_id
+    if(!courseId) {
+      return res.status(403).json({
+        message : "course id not provided"
+      })
+    }
+    const uni = await Course.findByIdAndDelete(courseId)
+    const universityId = uni.university_id
+    if(!universityId) {
+      return res.status(403).json({
+        message : "university id not provided"
+      })
+    }
+    await University.findByIdAndDelete(universityId)
     return res.status(200).json({
       success: true,
       message: "PDF deleted successfully",

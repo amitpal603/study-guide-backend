@@ -5,6 +5,7 @@ import Course from "../models/course.model.js";
 import Semester from "../models/semester.model.js";
 import { uploadCloudinaryPDF } from "../Helper/uploadCloudinary.js";
 import cloudinary from "../config/cloudinary.js";
+import mongoose from "mongoose";
 
 export const uploadPdfToDatabase = async (req, res) => {
   try {
@@ -70,25 +71,51 @@ export const uploadPdfToDatabase = async (req, res) => {
   }
 };
 
-export const getPdf = async (req , res) => {
+export const getPdf = async (req, res) => {
   try {
-    const data = await Study.find({})
+    const { university, course, semester, subject } = req.query;
 
-    return res.status(200).json({
-      data
-    })
+    const data = await Study.find()
+      .populate({
+        path: "subject",
+        match: subject ? { subjectName: subject } : {},
+        populate: {
+          path: "semester_id",
+          match: semester ? { semester: Number(semester) } : {},
+          populate: {
+            path: "course_id",
+            match: course ? { course_name: course } : {},
+            populate: {
+              path: "university_id",
+              match: university ? { university_name: university } : {}
+            }
+          }
+        }
+      });
+
+    // ❗ Remove unmatched (null populated)
+    const filteredData = data.filter(item => item.subject !== null);
+
+    return res.status(200).json({ data: filteredData });
+
   } catch (error) {
     return res.status(500).json({
-      message : "Internal server error"
-    })
+      message: `Internal server error ${error.message}`
+    });
   }
-}
+};
 
 export const deletePdf = async (req, res) => {
   const { pdfId } = req.params;
   const {id} = req.userInfo;
 
   try {
+    if (!mongoose.Types.ObjectId.isValid(pdfId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid PDF ID",
+      });
+    }
     const pdf = await Study.findById(pdfId);
 
     if (!pdf) {

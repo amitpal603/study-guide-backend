@@ -6,13 +6,15 @@ import Course from "../models/course.model.js"
 import Semester from "../models/semester.model.js"
 import crypto from "crypto"
 import { sendEmail } from "../lib/email.js"
+import {  sendMail1 } from "../services/email.service.js"
+import { getOtpHtml ,generateOTP} from "../lib/otpGenerate.js"
+import Otp from "../models/otp.model.js"
 
 export const UserRegister = async (req, res) => {
   try {
     const { username, email, password, university, course, semester, role } = req.body;
 
-    console.log("Request Body:", req.body);
-
+    
     // Check existing user
     const isExistUser = await User.findOne({ email });
     if (isExistUser) {
@@ -78,7 +80,18 @@ export const UserRegister = async (req, res) => {
       course_id: cou._id,
       semester_id: sem._id,
     });
+    const otp = generateOTP()
+    const html = getOtpHtml(otp)
 
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex")
+
+    await Otp.create({
+      email,
+      user : newUser._id,
+      otpHash
+    })
+
+    await sendMail1(email , otp)
     return res.status(201).json({
       message: "User created successfully",
       newUser,
@@ -112,6 +125,12 @@ export const userLogin = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         message: "User not found"
+      })
+    }
+
+    if(!user.isEmailVerified) {
+      return res.status(403).json({
+        message : "Please verify your email before login"
       })
     }
 
@@ -298,6 +317,41 @@ export const deleteUser = async (req , res) => {
   } catch (error) {
     return res.status(500).json({
       message : "Internal server error"
+    })
+  }
+}
+
+export const verifyEmail = async (req , res) => {
+  const {otp , email} = req.body
+  if(!otp || !email) {
+    return res.status(400).json({
+      message : "OTP and Email are required"
+    })
+  }
+
+  const otpHash = crypto.createHash("sha256").update(otp).digest("hex")
+
+  try {
+    const otpRecord = await Otp.findOne({email , otpHash})
+
+    if(!otpRecord) {
+      return res.status(400).json({
+        message : "Invalid OTP"
+      })
+    }
+    const user = await User.findByIdAndUpdate(otpRecord.user , {isEmailVerified : true} , {new : true})
+
+    await Otp.deleteMany({
+      user : otpRecord.user
+    })
+
+    return res.status(200).json({
+      message : "Email verified successfully",
+      user
+    })
+  } catch (error) {
+    return res.status(500).json({
+      message : "Internal server error in email verification"
     })
   }
 }

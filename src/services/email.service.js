@@ -14,6 +14,7 @@ oAuth2Client.setCredentials({
 });
 
 export async function sendMail1(email, otp) {
+  console.log("Hello guys")
   try {
     const accessTokenResponse = await oAuth2Client.getAccessToken();
     const accessToken =
@@ -33,13 +34,13 @@ export async function sendMail1(email, otp) {
       },
     });
 
-    await transporter.sendMail({
+   const info = await transporter.sendMail({
       from: `OTP Service <${process.env.GOOGLE_USER}>`,
       to: email,
       subject: "OTP Verification Code :",
       text: `Your Verification Code : ${otp}`,
     });
-    console.log(" Email sent:");
+    console.log(" Email sent" , info.messageId);
   } catch (err) {
     console.error("Error:", err);
   }

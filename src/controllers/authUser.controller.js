@@ -12,10 +12,19 @@ import Otp from "../models/otp.model.js"
 
 export const UserRegister = async (req, res) => {
   try {
-    const { username, email, password, university, course, semester, role } = req.body;
+    console.log("✅ Register API hit");
 
-    
-    // Check existing user
+    const {
+      username,
+      email,
+      password,
+      university,
+      course,
+      semester,
+      role,
+    } = req.body;
+
+    // 🔹 Check existing user
     const isExistUser = await User.findOne({ email });
     if (isExistUser) {
       return res.status(400).json({
@@ -23,89 +32,102 @@ export const UserRegister = async (req, res) => {
       });
     }
 
-    // Hash password
+    // 🔹 Hash password
     const hashPassword = await argon2.hash(password);
 
-    //  ADMIN REGISTER
+    let newUser;
+
+    // =========================
+    // 🔥 ADMIN REGISTER
+    // =========================
     if (role === "ADMIN") {
-      const admin = await User.create({
+      newUser = await User.create({
         username,
         email,
         password: hashPassword,
         role: "ADMIN",
+        isEmailVerified: false, // ✅ admin field
       });
+    } 
+    // =========================
+    // 🔥 USER REGISTER
+    // =========================
+    else {
+      let uni = await University.findOne({ university_name: university });
+      if (!uni) {
+        uni = await University.create({ university_name: university });
+      }
 
-      return res.status(201).json({
-        message: "Admin created successfully",
-        admin,
-      });
-    }
-
-    //  USER REGISTER
-    let uni = await University.findOne({ university_name: university });
-    if (!uni) {
-      uni = await new University({ university_name: university }).save();
-    }
-
-    let cou = await Course.findOne({
-      course_name: course,
-      university_id: uni._id,
-    });
-
-    if (!cou) {
-      cou = await new Course({
+      let cou = await Course.findOne({
         course_name: course,
         university_id: uni._id,
-      }).save();
-    }
+      });
 
-    let sem = await Semester.findOne({
-      semester: semester,
-      course_id: cou._id,
-    });
+      if (!cou) {
+        cou = await Course.create({
+          course_name: course,
+          university_id: uni._id,
+        });
+      }
 
-    if (!sem) {
-      sem = await new Semester({
+      let sem = await Semester.findOne({
         semester: semester,
         course_id: cou._id,
-      }).save();
+      });
+
+      if (!sem) {
+        sem = await Semester.create({
+          semester: semester,
+          course_id: cou._id,
+        });
+      }
+
+      newUser = await User.create({
+        username,
+        email,
+        password: hashPassword,
+        role: role || "USER",
+        university_id: uni._id,
+        course_id: cou._id,
+        semester_id: sem._id,
+        isEmailVerified: false, // ✅ SAME field use karo
+      });
     }
 
-    const newUser = await User.create({
-      username,
-      email,
-      password: hashPassword,
-      role: role || "USER",
-      university_id: uni._id,
-      course_id: cou._id,
-      semester_id: sem._id,
-    });
-    const otp = generateOTP()
-    const html = getOtpHtml(otp)
+    
+    const otp = generateOTP();
 
-    const otpHash = crypto.createHash("sha256").update(otp).digest("hex")
+    const otpHash = crypto
+      .createHash("sha256")
+      .update(otp.toString())
+      .digest("hex");
 
     await Otp.create({
       email,
-      user : newUser._id,
-      otpHash
-    })
-
-    await sendMail1(email , otp)
-    return res.status(201).json({
-      message: "User created successfully",
-      newUser,
+      user: newUser._id,
+      otpHash,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
     });
+
+    // 🔹 Send Email
+     await sendMail1(email, otp);
+
+    
+
+    return res.status(201).json({
+      message: `${role === "ADMIN" ? "Admin" : "User"} registered. OTP sent`,
+      userId: newUser._id,
+    });
+
   } catch (error) {
-    console.error("Register Error:", error);
+    console.error("❌ Register Error:", error);
 
     return res.status(500).json({
-      message: "Internal server error in register controller",
+      message: "Internal server error",
       error: error.message,
     });
   }
 };
-
 export const userLogin = async (req, res) => {
 
   const { email, password } = req.body

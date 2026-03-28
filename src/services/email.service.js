@@ -6,7 +6,7 @@ dotenv.config();
 const oAuth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  "https://developers.google.com/oauthplayground"
+  process.env.GOOGLE_PLAYGROUND_URL
 );
 
 oAuth2Client.setCredentials({
@@ -30,7 +30,7 @@ export async function sendMail1(email, otp) {
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-        accessToken: accessToken, // ✅ IMPORTANT FIX
+        accessToken: accessToken,
       },
     });
 

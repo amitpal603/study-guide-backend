@@ -16,6 +16,6 @@ router.post("/reset-password/:token" , resetPassword )
 router.get("/get/pdf" ,authUser , authAdmin, getPdf)
 router.get("/getAllUser" , authUser , authAdmin , getAllUser)
 router.delete("/delete/:id" , authUser , authAdmin , deleteUser)
-router.get("/verify-email" , verifyEmail)
+router.post("/verify-email" , verifyEmail)
 
 export default router

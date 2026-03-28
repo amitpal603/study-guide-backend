@@ -344,7 +344,7 @@ export const deleteUser = async (req , res) => {
 }
 
 export const verifyEmail = async (req , res) => {
-  const {otp , email} = req.body
+  const {email , otp} = req.body
   if(!otp || !email) {
     return res.status(400).json({
       message : "OTP and Email are required"

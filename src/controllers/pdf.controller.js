@@ -180,3 +180,34 @@ export const deletePdf = async (req, res) => {
     });
   }
 };
+
+export const userGetPdf = async (req, res) => {
+  const { university, course, semester, subject } = req.query;
+  try {
+    const data = await Study.findOne()
+      .populate({
+        path: "subject",
+        match: subject ? { subjectName: subject } : {},
+        populate: {
+          path: "semester_id",
+          match: semester ? { semester: Number(semester) } : {},
+          populate: {
+            path: "course_id",
+            match: course ? { course_name: course } : {},
+            populate: {
+              path: "university_id",
+              match: university ? { university_name: university } : {}
+            }
+          }
+        }
+      });
+
+    
+    return res.status(200).json({ data });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: `Internal server error ${error.message}`
+    });
+  }
+}

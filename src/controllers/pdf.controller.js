@@ -73,7 +73,7 @@ export const uploadPdfToDatabase = async (req, res) => {
 
 export const getPdf = async (req, res) => {
   try {
-    const { university, course, semester, subject } = req.query;
+    const {university , course , semester, subject } = req.query;
 
     const data = await Study.find()
       .populate({
@@ -182,32 +182,36 @@ export const deletePdf = async (req, res) => {
 };
 
 export const userGetPdf = async (req, res) => {
-  const { university, course, semester, subject } = req.query;
-  try {
-    const data = await Study.findOne()
-      .populate({
-        path: "subject",
-        match: subject ? { subjectName: subject } : {},
-        populate: {
-          path: "semester_id",
-          match: semester ? { semester: Number(semester) } : {},
-          populate: {
-            path: "course_id",
-            match: course ? { course_name: course } : {},
-            populate: {
-              path: "university_id",
-              match: university ? { university_name: university } : {}
-            }
-          }
-        }
-      });
+  const { subjectName } = req.query;
 
-    
-    return res.status(200).json({ data });
+  const normallySubject = subjectName.toLowerCase()
+
+  try {
+    if (!normallySubject) {
+      return res.status(400).json({
+        message: "Subject is required",
+      });
+    }
+
+    // Step 1: Find subject document
+    const subjectData = await Subject.findOne({ subjectName: normallySubject });
+
+    if (!subjectData) {
+      return res.status(404).json({
+        message: "Subject not found",
+      });
+    }
+
+    // Step 2: Fetch related content
+    const relatedData = await Study.find({ subject: subjectData._id });
+
+    return res.status(200).json({
+      data: relatedData,
+    });
 
   } catch (error) {
     return res.status(500).json({
-      message: `Internal server error ${error.message}`
+      message: `Internal server error: ${error.message}`,
     });
   }
-}
+};

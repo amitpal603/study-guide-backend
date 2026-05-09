@@ -37,9 +37,9 @@ export const UserRegister = async (req, res) => {
 
     let newUser;
 
-    // =========================
-    // 🔥 ADMIN REGISTER
-    // =========================
+    
+    // ! ADMIN REGISTER
+   
     if (role === "ADMIN") {
       newUser = await User.create({
         username,
@@ -49,9 +49,9 @@ export const UserRegister = async (req, res) => {
         isEmailVerified: false, // ✅ admin field
       });
     } 
-    // =========================
-    // 🔥 USER REGISTER
-    // =========================
+    
+    // ! USER REGISTER
+    
     else {
       let uni = await University.findOne({ university_name: university });
       if (!uni) {
